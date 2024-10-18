@@ -1,0 +1,13 @@
+PyPDF2
+langchain
+langchain_community
+langchain_groq
+pinecone-client
+cohere
+streamlit
+groq
+python-dotenv
+langchain_ollama
+pinecone
+googleapis-common-protos
+grpcio
