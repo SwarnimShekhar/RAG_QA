@@ -2,9 +2,8 @@
 
 ## Project Overview
 This project implements a Retrieval-Augmented Generation (RAG) model for a Question Answering (QA) bot using a vector database (Pinecone) and a generative model (Cohere). The QA bot retrieves relevant information from a dataset and generates coherent answers based on user queries.
-Live Project Link - https://swarnim-rag-bot.streamlit.app/ (You need to have Ollama installed and running in your local machine to run this , as it used ollam for embeddings, all the steps are mentioned below).
 
-Cohere Embeddings implementation is also uploaded, you can run it in your pc by following the steps given in **Part 2**, download the rag_qa_cohere_embeddings.py and app_cohere.py ,after that follow the steps mentioned in **Part 2**.
+Docker Hub Link - https://hub.docker.com/r/swarnimshekhar/rag_qa/tags
 
 **Implementation Screenshots**
 
