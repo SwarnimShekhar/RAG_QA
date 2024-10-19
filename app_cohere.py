@@ -3,11 +3,13 @@ import os
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_cohere import CohereEmbeddings  # Updated import
+from langchain_cohere import CohereEmbeddings
 from pinecone import Pinecone, ServerlessSpec
 import PyPDF2
 from dotenv import load_dotenv
 import cohere
+import time
+from groq import Groq
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,13 +19,13 @@ cohere_api_key = os.getenv('COHERE_API_KEY')
 
 # Initialize LLMs
 llm_local = ChatOllama(model="mistral:instruct")
-llm_groq = ChatGroq(groq_api_key=groq_api_key, model_name='mixtral-8x7b-32768')
+llm_groq = Groq(api_key=groq_api_key)
 
 # Initialize Pinecone
 pinecone = Pinecone(api_key=pinecone_api_key)
 
 # Streamlit UI setup
-st.title("Document-Based QA with Pinecone, Groq & Cohere")
+st.title("Document-Based QA with Pinecone , Groq & Cohere")
 st.subheader("Upload a PDF, ask questions, and get accurate responses.")
 
 # PDF Upload
@@ -39,49 +41,41 @@ if uploaded_file is not None:
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     texts = text_splitter.split_text(pdf_text)
 
-    # Embed documents
-    embeddings = CohereEmbeddings(model="embed-english-v3.0")  # Updated class
-    embeddings = embeddings.embed_documents(texts)
+    # Embed documents using Cohere
+    embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
 
     # Check if the index already exists
-    index_name = 'rag-qa-cohere'
-    existing_indexes = pinecone.list_indexes()
-
-    if index_name not in existing_indexes:
+    if not pinecone.has_index('rag-qa-cohere'):
         # Create the index if it doesn't exist
         with st.spinner("Creating Pinecone index..."):
             pinecone.create_index(
-                name=index_name,
-                dimension=1536,
+                name="rag-qa-cohere",
+                dimension=1024,
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1")
             )
-            st.success(f"Index '{index_name}' created.")
+            st.write("Index 'rag-qa-cohere' created.")
     else:
-        st.write(f"Index '{index_name}' already exists.")
+        st.write("Index 'rag-qa-cohere' already exists.")
 
     # Connect to the existing index
-    index = pinecone.Index(index_name)
+    index = pinecone.Index("rag-qa-cohere")
 
-    # Check if documents are already upserted
+    # Check if documents are already upserted to avoid re-upserting
     index_stats = index.describe_index_stats()
-
     if index_stats["total_vector_count"] == 0:
-        # If no vectors exist, proceed with upserting documents
         with st.spinner("Upserting documents into Pinecone..."):
-            embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
             for i in range(len(texts)):
                 index.upsert([(str(i), embeddings[i], {"text": texts[i]})])
             st.success("Documents upserted successfully!")
     else:
-        st.write("Documents are already upserted to Pinecone.")
-
+        st.write("Documents already upserted to Pinecone.")
 
 # Query Input
 query = st.text_input("Enter your question:")
 if query:
-    # Get the query embedding
-    query_embedding = CohereEmbeddings(model="embed-english-v3.0").embed_query(query)  # Updated class
+    # Get the query embedding using Cohere
+    query_embedding = CohereEmbeddings(model="embed-english-v3.0").embed_query(query)
 
     # Rerank documents based on the query
     with st.spinner("Reranking relevant documents..."):
