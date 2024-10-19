@@ -66,7 +66,7 @@ if uploaded_file is not None:
     # Check if documents are already upserted
     index_stats = index.describe_index_stats()
 
-    if index_stats["vectorCount"] == 0:
+    if index_stats["total_vector_count"] == 0:
         # If no vectors exist, proceed with upserting documents
         with st.spinner("Upserting documents into Pinecone..."):
             embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
