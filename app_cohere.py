@@ -63,15 +63,19 @@ if uploaded_file is not None:
     # Connect to the existing index
     index = pinecone.Index(index_name)
 
-    # Check if documents are already upserted to avoid re-upserting
+    # Check if documents are already upserted
     index_stats = index.describe_index_stats()
+
     if index_stats["total_vector_count"] == 0:
+        # If no vectors exist, proceed with upserting documents
         with st.spinner("Upserting documents into Pinecone..."):
+            embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
             for i in range(len(texts)):
                 index.upsert([(str(i), embeddings[i], {"text": texts[i]})])
             st.success("Documents upserted successfully!")
     else:
-        st.write("Documents already upserted to Pinecone.")
+        st.write("Documents are already upserted to Pinecone.")
+
 
 # Query Input
 query = st.text_input("Enter your question:")
