@@ -32,8 +32,8 @@ def embed_documents(texts):
 # Upsert into Pinecone
 def upsert_documents(texts, embeddings):
     pc = Pinecone(api_key=pinecone_api_key)
-    pc.create_index(name="rag-qa", dimension=768, metric="cosine", spec=ServerlessSpec(cloud="aws", region="us-east-1"))
-    index = pc.Index("rag-qa")
+    pc.create_index(name="rag-qa-cohere", dimension=1024, metric="cosine", spec=ServerlessSpec(cloud="aws", region="us-east-1"))
+    index = pc.Index("rag-qa-cohere")
 
     for i in range(len(texts)):
         index.upsert([(str(i), embeddings[i], {"text": texts[i]})])
