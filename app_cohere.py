@@ -44,15 +44,21 @@ if uploaded_file is not None:
     # Embed documents using Cohere
     embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
 
-    # Check if the index already exists
-    if not pinecone.has_index('rag-qa-cohere'):
+    # List all available indexes
+    existing_indexes = pinecone.list_indexes()
+
+    # Check if the index exists
+    if 'rag-qa-cohere' not in existing_indexes:
         # Create the index if it doesn't exist
         with st.spinner("Creating Pinecone index..."):
             pinecone.create_index(
-                name="rag-qa-cohere",
+                name='rag-qa-cohere',
                 dimension=1024,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1")
+                metric='cosine',
+                spec=ServerlessSpec(
+                    cloud="aws",
+                    region="us-east-1"
+                )
             )
             st.write("Index 'rag-qa-cohere' created.")
     else:
