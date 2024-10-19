@@ -11,3 +11,4 @@ langchain_ollama
 pinecone
 googleapis-common-protos
 grpcio
+langchain_cohere
