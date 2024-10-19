@@ -1,12 +1,12 @@
 import PyPDF2
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_cohere import CohereEmbeddings
+from langchain_cohere import CohereEmbeddings  # Updated import
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import os
-import cohere
 from pinecone import Pinecone, ServerlessSpec
+import cohere
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -24,26 +24,36 @@ def split_text(pdf_text):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     return text_splitter.split_text(pdf_text)
 
-# Embed documents using Cohere
+# Embed documents
 def embed_documents(texts):
-    embeddings = CohereEmbeddings(model="embed-english-v3.0")
+    embeddings = CohereEmbeddings(model="embed-english-v3.0")  # Updated class
     return embeddings.embed_documents(texts)
 
 # Upsert into Pinecone
 def upsert_documents(texts, embeddings):
     pc = Pinecone(api_key=pinecone_api_key)
-    pc.create_index(name="rag-qa-cohere", dimension=1024, metric="cosine", spec=ServerlessSpec(cloud="aws", region="us-east-1"))
-    index = pc.Index("rag-qa-cohere")
-
-    for i in range(len(texts)):
-        index.upsert([(str(i), embeddings[i], {"text": texts[i]})])
     
-    print("Done upserting...")
-    return index
+    index_name = "rag-qa-cohere"
+    existing_indexes = pc.list_indexes()
 
-# Get query embedding using Cohere
+    # Check if the index exists
+    if index_name not in existing_indexes:
+        pc.create_index(name=index_name, dimension=1536, metric="cosine", spec=ServerlessSpec(cloud="aws", region="us-east-1"))
+    
+    index = pc.Index(index_name)
+
+    # Check if documents are already upserted
+    index_stats = index.describe_index_stats()
+    if index_stats["total_vector_count"] == 0:
+        for i in range(len(texts)):
+            index.upsert([(str(i), embeddings[i], {"text": texts[i]})])
+        print("Documents upserted successfully!")
+    else:
+        print("Documents already upserted to Pinecone.")
+
+# Get query embedding
 def get_query_embedding(text):
-    embeddings = CohereEmbeddings(model="embed-english-v3.0")
+    embeddings = CohereEmbeddings(model="embed-english-v3.0")  # Updated class
     return embeddings.embed_query(text)
 
 # Rerank documents
@@ -58,7 +68,7 @@ def rerank_documents(query, question_embedding, index):
 
 # Generate response
 def generate_response(context, query):
-    client = Groq(api_key=groq_api_key)
+    client = ChatGroq(groq_api_key=groq_api_key)
     filled_template = f"Given the following context: {context}, generate a comprehensive and accurate response to the question: {query}. The response should include both paragraphs and bullet points where appropriate."
     
     chat_completion = client.chat.completions.create(

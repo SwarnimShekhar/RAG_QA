@@ -3,7 +3,7 @@ import os
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import CohereEmbeddings
+from langchain_cohere import CohereEmbeddings  # Updated import
 from pinecone import Pinecone, ServerlessSpec
 import PyPDF2
 from dotenv import load_dotenv
@@ -40,7 +40,8 @@ if uploaded_file is not None:
     texts = text_splitter.split_text(pdf_text)
 
     # Embed documents
-    embeddings = CohereEmbeddings(model="embed-english-v3.0").embed_documents(texts)
+    embeddings = CohereEmbeddings(model="embed-english-v3.0")  # Updated class
+    embeddings = embeddings.embed_documents(texts)
 
     # Check if the index already exists
     index_name = 'rag-qa-cohere'
@@ -76,7 +77,7 @@ if uploaded_file is not None:
 query = st.text_input("Enter your question:")
 if query:
     # Get the query embedding
-    query_embedding = CohereEmbeddings(model="embed-english-v3.0").embed_query(query)
+    query_embedding = CohereEmbeddings(model="embed-english-v3.0").embed_query(query)  # Updated class
 
     # Rerank documents based on the query
     with st.spinner("Reranking relevant documents..."):
