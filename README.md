@@ -5,8 +5,6 @@ This project implements a Retrieval-Augmented Generation (RAG) model for a Quest
 
 **Docker Hub Link** - https://hub.docker.com/r/swarnimshekhar/rag_qa/tags
 
-**Live Link** - https://swarnim-rag-bot-cohere.streamlit.app/
-
 
 **Implementation Screenshots**
 
